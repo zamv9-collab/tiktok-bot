@@ -1,0 +1,4 @@
+aiogram>=3.0.0
+yt-dlp>=2023.12.30
+aiohttp>=3.9.0
+curl_cffi>=0.7.0
