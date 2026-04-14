@@ -21,19 +21,19 @@ def _require(key: str) -> str:
 
 bot_token = _require("BOT_TOKEN")
 CHANNEL_ID = _require("CHANNEL_ID")
-CHANNEL_LINK = _require("CHANNEL_LINK")
+CHANNEL_LINK = os.environ.get("CHANNEL_LINK", "https://t.me/+lupGFr7wi3ZkZDBi")
 PORT = int(os.environ.get("BOT_PORT", 5000))
 
 ydl_opts = {
     'format': 'best',
     'outtmpl': '/tmp/%(title)s.%(ext)s',
     'quiet': True,
-    'impersonate': 'chrome',
 }
 
 
 def download_sync(url):
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+    ydl_opts_copy = ydl_opts.copy()
+    with yt_dlp.YoutubeDL(ydl_opts_copy) as ydl:
         info = ydl.extract_info(url, download=True)
         return ydl.prepare_filename(info), info
 
@@ -64,13 +64,7 @@ async def upload_to_telegram(bot, chat_id, filepath, caption):
 
 async def cmd_start(message, bot):
     name = message.from_user.first_name or "друг"
-    text = (
-        f"👋 Привет, {name}!\n\n"
-        f"Я помогу тебе скачать видео с TikTok прямо в Telegram.\n\n"
-        f"📌 Для начала подпишись на наш канал:\n{CHANNEL_LINK}\n\n"
-        f"✅ После подписки просто отправь мне ссылку на любое TikTok-видео — и я пришлю его тебе!\n\n"
-        f"Пример ссылки:\nhttps://www.tiktok.com/@user/video/123456789"
-    )
+    text = f"👋 Привет, {name}!\n\nПодпишись на канал: {CHANNEL_LINK}\n\nПотом отправь ссылку на TikTok видео."
     await message.answer(text)
 
 
@@ -112,7 +106,7 @@ async def run_web_server():
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", PORT)
     await site.start()
-    logger.info(f"Keepalive сервер запущен на порту {PORT}")
+    logger.info(f"Keepalive сервер на порту {PORT}")
 
 
 async def run_bot():
@@ -126,7 +120,7 @@ async def run_bot():
             logger.info("Бот запущен")
             await dp.start_polling(bot)
         except Exception as e:
-            logger.error(f"Бот упал с ошибкой: {e}. Перезапуск через {retry_delay}с...")
+            logger.error(f"Бот упал: {e}. Перезапуск через {retry_delay}с...")
             await asyncio.sleep(retry_delay)
             retry_delay = min(retry_delay * 2, 60)
         finally:
