@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 def _require(key: str) -> str:
     value = os.environ.get(key)
     if not value:
-        raise RuntimeError(f"Переменная окружения {key} не задана")
+        raise RuntimeError(f"Переменная {key} не задана")
     return value
 
 
@@ -64,7 +64,13 @@ async def upload_to_telegram(bot, chat_id, filepath, caption):
 
 async def cmd_start(message, bot):
     name = message.from_user.first_name or "друг"
-    text = f"👋 Привет, {name}!\n\nПодпишись на канал: {CHANNEL_LINK}\n\nПотом отправь ссылку на TikTok видео."
+    text = (
+        f"👋 Привет, {name}! 🎉\n\n"
+        f"Я бот для скачивания видео с TikTok\n\n"
+        f"📌 Подпишись на канал: {CHANNEL_LINK}\n\n"
+        f"✅ После подписки отправь ссылку на видео!\n\n"
+        f"🔗 Пример: https://www.tiktok.com/@..."
+    )
     await message.answer(text)
 
 
@@ -106,7 +112,7 @@ async def run_web_server():
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", PORT)
     await site.start()
-    logger.info(f"Keepalive сервер на порту {PORT}")
+    logger.info(f"Keepalive на порту {PORT}")
 
 
 async def run_bot():
@@ -120,7 +126,7 @@ async def run_bot():
             logger.info("Бот запущен")
             await dp.start_polling(bot)
         except Exception as e:
-            logger.error(f"Бот упал: {e}. Перезапуск через {retry_delay}с...")
+            logger.error(f"Бот упал: {e}. Перезапуск...")
             await asyncio.sleep(retry_delay)
             retry_delay = min(retry_delay * 2, 60)
         finally:
